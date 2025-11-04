@@ -4,8 +4,10 @@ import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import me.shedaniel.autoconfig.serializer.PartitioningSerializer;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.impl.client.keybinding.KeyBindingRegistryImpl;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.option.Perspective;
@@ -34,14 +36,20 @@ public class PerspectiveMod implements ClientModInitializer {
     public float cameraYaw;
     private boolean held = false;
 
-    public PerspectiveMod(){
-        this.client = MinecraftClient.getInstance();
-        this.perspectiveEnabled = false;
+    public PerspectiveMod() {
         PerspectiveMod.INSTANCE = this;
     }
 
     @Override
     public void onInitializeClient() {
+        if (FabricLoader.getInstance().getEnvironmentType() != EnvType.CLIENT) {
+            LOGGER.warn("Perspective Mod initialized outside the client environment; skipping setup.");
+            return;
+        }
+
+        this.client = MinecraftClient.getInstance();
+        this.perspectiveEnabled = false;
+
         AutoConfig.register(
                 PerspectiveConfig.class,
                 PartitioningSerializer.wrap(JanksonConfigSerializer::new)
